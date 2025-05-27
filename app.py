@@ -18,7 +18,7 @@ model_name = "openai/clip-vit-large-patch14"
 try:
     model = CLIPModel.from_pretrained(model_name).to(device)
     processor = CLIPProcessor.from_pretrained(model_name)
-    st.success("Model and processor loaded ✅")
+    st.success("✅ Model and processor loaded")
 except Exception as e:
     st.error(f"Model load failed: {e}")
     st.stop()
@@ -38,7 +38,6 @@ try:
         labels_de = f.read().splitlines()
     with open("answers_DE.txt", encoding="utf-8") as f:
         answers_de = f.read().splitlines()
-    st.success(f"Loaded {len(labels_en_raw)} labels")
 except Exception as e:
     st.error(f"Error loading label files: {e}")
     st.stop()
