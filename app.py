@@ -81,9 +81,16 @@ if uploaded:
         with torch.no_grad():
             v = model.get_image_features(**inp)
             v /= v.norm(dim=-1, keepdim=True)
-            idx = (v @ text_feats.T)[0].argmax().item()
+            sim = (v @ text_feats.T)[0]
+            idx = sim.argmax().item()
 
         st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+        st.markdown("🏷️ Top-10:")
+        topk = sim.topk(10)
+        for i in range(10):
+            k = topk.indices[i].item()
+            st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
