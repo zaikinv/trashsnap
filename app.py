@@ -18,7 +18,7 @@ model_name = "openai/clip-vit-large-patch14"
 try:
     model = CLIPModel.from_pretrained(model_name).to(device)
     processor = CLIPProcessor.from_pretrained(model_name)
-    st.success("✅ Model and processor loaded")
+    st.success("✅ Computer vision model loaded!")
 except Exception as e:
     st.error(f"Model load failed: {e}")
     st.stop()
@@ -56,13 +56,13 @@ def embed_text(texts, chunk=128):
             out.append(e)
     feats = torch.cat(out)
     feats /= feats.norm(dim=-1, keepdim=True)
-    st.success("✅ Text embeddings ready")
+    st.success("✅ Classificator is ready!")
     return feats
 
 text_feats = embed_text(labels_en)
 
 # ──────────────────────────────────────────────────────────────
-uploaded = st.file_uploader("Upload or drag a photo", type=["jpg", "jpeg", "png"])
+uploaded = st.file_uploader("Upload a foto of your trash!", type=["jpg", "jpeg", "png"])
 
 if uploaded:
     try:
