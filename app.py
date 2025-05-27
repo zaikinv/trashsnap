@@ -1,7 +1,7 @@
 import os
 import torch
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageOps
 from transformers import CLIPProcessor, CLIPModel
 
 st.set_page_config(page_title="TrashSnap", layout="centered")
@@ -73,6 +73,7 @@ uploaded = st.file_uploader("Upload or drag a photo", type=["jpg", "jpeg", "png"
 if uploaded:
     try:
         image = Image.open(uploaded).convert("RGB")
+        image = ImageOps.exif_transpose(image)
         st.image(image, caption="Uploaded image", width=336)
 
         st.info("🧠 Classifying...")
