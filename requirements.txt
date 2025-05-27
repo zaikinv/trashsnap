@@ -1,4 +1,4 @@
 torch
 transformers
-gradio
+streamlit
 pillow

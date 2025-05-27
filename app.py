@@ -1,47 +1,89 @@
+import os
 import torch
-from transformers import CLIPProcessor, CLIPModel
+import streamlit as st
 from PIL import Image
-import gradio as gr
+from transformers import CLIPProcessor, CLIPModel
 
+st.set_page_config(page_title="TrashSnap", layout="centered")
+st.title("🧠 TrashSnap")
+st.markdown("Drop or upload a picture of waste to get the correct German bin 🚮")
+
+# ──────────────────────────────────────────────────────────────
+# Init
+st.info("⏳ Loading model and label files...")
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model_name = "openai/clip-vit-large-patch14"
-model      = CLIPModel.from_pretrained(model_name).to(device)
-processor  = CLIPProcessor.from_pretrained(model_name)
+st.write(f"Using device: `{device}`")
 
-# load label files
-with open("labels_EN.txt", encoding="utf-8") as f: labels_en_raw = f.read().splitlines()
-with open("labels_DE.txt", encoding="utf-8") as f: labels_de     = f.read().splitlines()
-with open("answers_DE.txt", encoding="utf-8") as f: answers_de   = f.read().splitlines()
+model_name = "openai/clip-vit-large-patch14"
+
+try:
+    model = CLIPModel.from_pretrained(model_name).to(device)
+    processor = CLIPProcessor.from_pretrained(model_name)
+    st.success("Model and processor loaded ✅")
+except Exception as e:
+    st.error(f"Model load failed: {e}")
+    st.stop()
+
+required_files = ["labels_EN.txt", "labels_DE.txt", "answers_DE.txt"]
+for file in required_files:
+    if not os.path.isfile(file):
+        st.error(f"❌ Missing file: `{file}`")
+        st.stop()
+    else:
+        st.write(f"✅ Found `{file}`")
+
+# ──────────────────────────────────────────────────────────────
+# Load label data
+try:
+    with open("labels_EN.txt", encoding="utf-8") as f:
+        labels_en_raw = f.read().splitlines()
+    with open("labels_DE.txt", encoding="utf-8") as f:
+        labels_de = f.read().splitlines()
+    with open("answers_DE.txt", encoding="utf-8") as f:
+        answers_de = f.read().splitlines()
+    st.success(f"Loaded {len(labels_en_raw)} labels")
+except Exception as e:
+    st.error(f"Error loading label files: {e}")
+    st.stop()
 
 labels_en = [f"An image containing {x}" for x in labels_en_raw]
 
-# one-time text-embedding cache
+# ──────────────────────────────────────────────────────────────
+@st.cache_resource(show_spinner=True)
 def embed_text(texts, chunk=128):
+    st.info("🔠 Embedding label texts...")
     parts, out = [texts[i:i+chunk] for i in range(0, len(texts), chunk)], []
     with torch.no_grad():
-        for p in parts:
+        for i, p in enumerate(parts):
+            st.write(f"Chunk {i+1}/{len(parts)}")
             t = processor(text=p, return_tensors="pt", padding=True, truncation=True).to(device)
             e = model.get_text_features(**t)
             e /= e.norm(dim=-1, keepdim=True)
             out.append(e)
     feats = torch.cat(out)
     feats /= feats.norm(dim=-1, keepdim=True)
+    st.success("✅ Text embeddings ready")
     return feats
 
 text_feats = embed_text(labels_en)
 
-def classify(img: Image.Image) -> str:
-    inp = processor(images=img, return_tensors="pt").to(device)
-    with torch.no_grad():
-        v = model.get_image_features(**inp)
-        v /= v.norm(dim=-1, keepdim=True)
-        idx = (v @ text_feats.T)[0].argmax().item()
-    return f"{labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ {answers_de[idx]}"
+# ──────────────────────────────────────────────────────────────
+uploaded = st.file_uploader("Upload or drag a photo", type=["jpg", "jpeg", "png"])
 
-gr.Interface(
-    fn=classify,
-    inputs=gr.Image(type="pil"),
-    outputs="text",
-    title="🧠 TrashSnap",
-    description="Drop or snap a picture of waste and get the right German bin."
-).launch()
+if uploaded:
+    try:
+        image = Image.open(uploaded).convert("RGB")
+        st.image(image, caption="Uploaded image", width=336)
+
+        st.info("🧠 Classifying...")
+        inp = processor(images=image, return_tensors="pt").to(device)
+
+        with torch.no_grad():
+            v = model.get_image_features(**inp)
+            v /= v.norm(dim=-1, keepdim=True)
+            idx = (v @ text_feats.T)[0].argmax().item()
+
+        st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
