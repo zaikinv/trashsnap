@@ -6,13 +6,12 @@ from transformers import CLIPProcessor, CLIPModel
 
 st.set_page_config(page_title="TrashSnap", layout="centered")
 st.title("🧠 TrashSnap")
-st.markdown("Drop or upload a picture of waste to get the correct German bin 🚮")
+st.markdown("Drop or upload a picture of waste to get the correct Tonne")
 
 # ──────────────────────────────────────────────────────────────
 # Init
 st.info("⏳ Loading model and label files...")
 device = "cuda" if torch.cuda.is_available() else "cpu"
-st.write(f"Using device: `{device}`")
 
 model_name = "openai/clip-vit-large-patch14"
 
@@ -29,8 +28,6 @@ for file in required_files:
     if not os.path.isfile(file):
         st.error(f"❌ Missing file: `{file}`")
         st.stop()
-    else:
-        st.write(f"✅ Found `{file}`")
 
 # ──────────────────────────────────────────────────────────────
 # Load label data
@@ -51,11 +48,9 @@ labels_en = [f"An image containing {x}" for x in labels_en_raw]
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=True)
 def embed_text(texts, chunk=128):
-    st.info("🔠 Embedding label texts...")
     parts, out = [texts[i:i+chunk] for i in range(0, len(texts), chunk)], []
     with torch.no_grad():
         for i, p in enumerate(parts):
-            st.write(f"Chunk {i+1}/{len(parts)}")
             t = processor(text=p, return_tensors="pt", padding=True, truncation=True).to(device)
             e = model.get_text_features(**t)
             e /= e.norm(dim=-1, keepdim=True)
