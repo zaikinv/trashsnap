@@ -13,6 +13,7 @@ from core import (
 from utils import profile_resources
 st.set_page_config(page_title="TrashSnap", layout="centered")
 st.title("🧠 TrashSnap")
+st.markdown("Drop or upload a picture of waste to get the correct Tonne")
 
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource
@@ -59,7 +60,18 @@ text_feats = get_embeddings()
 # st.success("✅ Text embeddings ready!")
 
 # ──────────────────────────────────────────────────────────────
-photo = st.camera_input("Take a photo of your trash")
+st.markdown(
+    """
+    <style>
+    video {
+        height: 900px !important;
+        width: auto !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+photo = st.camera_input(" ")
 
 if photo:
     image = Image.open(photo)
