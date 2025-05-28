@@ -3,7 +3,8 @@ import torch
 from PIL import Image, ImageOps
 from transformers import CLIPProcessor, CLIPModel
 
-MODEL_NAME = "openai/clip-vit-large-patch14"
+# MODEL_NAME = "openai/clip-vit-large-patch14"
+MODEL_NAME = "openai/clip-vit-base-patch32"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def load_model_and_processor():
