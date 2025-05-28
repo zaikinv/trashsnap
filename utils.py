@@ -41,13 +41,20 @@ def profile_resources(func):
 
         cpu_percent_total = cpu_after
         cpu_percent_of_system = cpu_after / (num_cores * 100) * 100
+        logical_cores_used = cpu_percent_total / 100
 
-        st.info(
-            f"""⏱️ {end_time - start_time:.3f}s |
-🧠 RAM: {mem_used_mb:.2f} MB ({mem_percent:.2f}%) |
-🧮 CPU: {cpu_percent_total:.1f}% (~{cpu_percent_of_system:.1f}% of system capacity)""" +
-            (f" | 🖥️ GPU Δ: {gpu_after - gpu_before} MB" if gpu_before and gpu_after else "")
-        )
+        st.markdown(f"""
+### 📊 Resource usage
+
+- **Time:** `{end_time - start_time:.3f} s`
+- **RAM used:** `{mem_used_mb:.2f} MB` ({mem_percent:.2f}% of system)
+- **Peak Python alloc:** `{peak / 1024**2:.2f} MB`
+- **CPU usage:** `{cpu_percent_total:.1f}%`
+  - ≈ `{cpu_percent_of_system:.1f}%` of system capacity
+  - ≈ `{logical_cores_used:.2f}` logical cores used (out of `{num_cores}`)
+""" + (
+    f"- 🖥️ **GPU memory delta:** `{gpu_after - gpu_before} MB`" if gpu_before and gpu_after else ""
+))
 
         return result
     return wrapped
