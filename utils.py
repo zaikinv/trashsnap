@@ -5,7 +5,7 @@ import subprocess
 import socket
 import platform
 import streamlit as st
-
+import torch
 def get_gpu_mem():
     try:
         out = subprocess.check_output(
