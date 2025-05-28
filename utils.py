@@ -2,6 +2,7 @@ import psutil
 import time
 import tracemalloc
 import subprocess
+import socket
 import streamlit as st
 
 def get_gpu_mem():
