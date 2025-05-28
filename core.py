@@ -29,22 +29,22 @@ def load_labels():
 def embed_text(texts, model, processor, chunk=128):
     parts, out = [texts[i:i+chunk] for i in range(0, len(texts), chunk)], []
     with torch.no_grad():
-        for p in parts:
-            t = processor(text=p, return_tensors="pt", padding=True, truncation=True)
-            t = {k: v.to(DEVICE) for k, v in t.items()}
-            e = model.get_text_features(**t)
-            e /= e.norm(dim=-1, keepdim=True)
-            out.append(e)
+        for text_chunk in parts:
+            text_inputs = processor(text=text_chunk, return_tensors="pt", padding=True, truncation=True)
+            text_inputs = {k: v.to(DEVICE) for k, v in text_inputs.items()}
+            embeddings = model.get_text_features(**text_inputs)
+            embeddings /= embeddings.norm(dim=-1, keepdim=True)
+            out.append(embeddings)
     feats = torch.cat(out)
     feats /= feats.norm(dim=-1, keepdim=True)
     return feats
 
 def classify(image, model, processor, text_feats):
     image = ImageOps.exif_transpose(image).convert("RGB")
-    inputs = processor(images=image, return_tensors="pt")
-    inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
+    image_inputs = processor(images=image, return_tensors="pt")
+    image_inputs = {k: v.to(DEVICE) for k, v in image_inputs.items()}
     with torch.no_grad():
-        v = model.get_image_features(**inputs)
-        v /= v.norm(dim=-1, keepdim=True)
-        sim = (v @ text_feats.T)[0]
-    return sim
+        image_features = model.get_image_features(**image_inputs)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        similarity_scores = (image_features @ text_feats.T)[0]
+    return similarity_scores
