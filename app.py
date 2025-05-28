@@ -63,9 +63,10 @@ text_feats = get_embeddings()
 st.markdown(
     """
     <style>
-    video {
-        height: 900px !important;
+    section[data-testid="stCameraInput"] video {
+        height: 600px !important;
         width: auto !important;
+        object-fit: cover;
     }
     </style>
     """,
