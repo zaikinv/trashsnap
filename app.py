@@ -10,10 +10,12 @@ from core import (
     embed_text,
     classify,
 )
-from utils import profile_resources
+from utils import profile_resources, show_system_info
 st.set_page_config(page_title="TrashSnap", layout="centered")
 st.title("🧠 TrashSnap")
 st.markdown("Drop or upload a picture of waste to get the correct Tonne")
+
+show_system_info()
 
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource
@@ -76,5 +78,3 @@ if photo:
     for i in range(10):
         k = topk.indices[i].item()
         st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
-
-    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")

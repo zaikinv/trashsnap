@@ -50,3 +50,26 @@ def profile_resources(func):
         return result
     return wrapped
 
+def show_system_info():
+    st.subheader("🖥️ Host system info")
+
+    cpu_count = psutil.cpu_count(logical=True)
+    total_ram_gb = psutil.virtual_memory().total / 1024**3
+    hostname = socket.gethostname()
+    os_info = platform.platform()
+    python_ver = platform.python_version()
+
+    st.markdown(f"""
+- **Hostname:** `{hostname}`
+- **OS:** `{os_info}`
+- **Python:** `{python_ver}`
+- **CPU cores (logical):** `{cpu_count}`
+- **Total RAM:** `{total_ram_gb:.2f} GB`
+""")
+
+    if torch.cuda.is_available():
+        st.markdown("### 🚀 GPU")
+        st.markdown(f"- **Device name:** `{torch.cuda.get_device_name(0)}`")
+        st.markdown(f"- **Memory total:** `{torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB`")
+    else:
+        st.markdown("🚫 No CUDA GPU available")
