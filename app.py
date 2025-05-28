@@ -13,27 +13,7 @@ from core import (
 from utils import profile_resources
 st.set_page_config(page_title="TrashSnap", layout="centered")
 st.title("🧠 TrashSnap")
-
-# ──────────────────────────────────────────────────────────────
-photo = st.camera_input("Drop or upload a picture of waste to get the correct Tonne")
-
-if photo:
-    image = Image.open(photo)
-    st.image(image, caption="Сделанное фото", width=336)
-    st.info("🧠 Classifying...")
-    profiled_classify = profile_resources(classify)
-    sim = profiled_classify(image, model, processor, text_feats)
-    idx = sim.argmax().item()
-
-    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
-
-    st.markdown("🏷️ Top-10:")
-    topk = sim.topk(10)
-    for i in range(10):
-        k = topk.indices[i].item()
-        st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
-
-    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+st.markdown("Drop or upload a picture of waste to get the correct Tonne")
 
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource
@@ -81,3 +61,24 @@ def get_embeddings():
 
 text_feats = get_embeddings()
 st.success("✅ Text embeddings ready!")
+
+# ──────────────────────────────────────────────────────────────
+photo = st.camera_input("Take a photo of your trash")
+
+if photo:
+    image = Image.open(photo)
+    st.image(image, caption="Сделанное фото", width=336)
+    st.info("🧠 Classifying...")
+    profiled_classify = profile_resources(classify)
+    sim = profiled_classify(image, model, processor, text_feats)
+    idx = sim.argmax().item()
+
+    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+    st.markdown("🏷️ Top-10:")
+    topk = sim.topk(10)
+    for i in range(10):
+        k = topk.indices[i].item()
+        st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
+
+    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
