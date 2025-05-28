@@ -1,91 +1,83 @@
-import os
-import torch
 import streamlit as st
-from PIL import Image, ImageOps
-from transformers import CLIPProcessor, CLIPModel
-
+from PIL import Image
+from os import path
+import torch
+from core import (
+    DEVICE,
+    load_model_and_processor,
+    check_required_files,
+    load_labels,
+    embed_text,
+    classify,
+)
+from utils import profile_resources
 st.set_page_config(page_title="TrashSnap", layout="centered")
 st.title("🧠 TrashSnap")
-st.markdown("Drop or upload a picture of waste to get the correct Tonne")
 
 # ──────────────────────────────────────────────────────────────
-# Init
-st.info("⏳ Loading model and label files...")
-device = "cuda" if torch.cuda.is_available() else "cpu"
+photo = st.camera_input("Drop or upload a picture of waste to get the correct Tonne")
 
-model_name = "openai/clip-vit-large-patch14"
+if photo:
+    image = Image.open(photo)
+    st.image(image, caption="Сделанное фото", width=336)
+    st.info("🧠 Classifying...")
+    profiled_classify = profile_resources(classify)
+    sim = profiled_classify(image, model, processor, text_feats)
+    idx = sim.argmax().item()
 
+    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+    st.markdown("🏷️ Top-10:")
+    topk = sim.topk(10)
+    for i in range(10):
+        k = topk.indices[i].item()
+        st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
+
+    st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+# ──────────────────────────────────────────────────────────────
+@st.cache_resource
+def get_model_and_processor():
+    return load_model_and_processor()
+
+st.info("⏳ Loading model...")
 try:
-    model = CLIPModel.from_pretrained(model_name).to(device)
-    processor = CLIPProcessor.from_pretrained(model_name)
-    st.success("✅ Computer vision model loaded!")
+    model, processor = get_model_and_processor()
+    st.success("✅ Model and processor loaded!")
 except Exception as e:
     st.error(f"Model load failed: {e}")
     st.stop()
 
+# ──────────────────────────────────────────────────────────────
+st.info("📄 Checking label files...")
 required_files = ["labels_EN.txt", "labels_DE.txt", "answers_DE.txt"]
-for file in required_files:
-    if not os.path.isfile(file):
-        st.error(f"❌ Missing file: `{file}`")
-        st.stop()
+missing = check_required_files(required_files)
+if missing:
+    for f in missing:
+        st.error(f"❌ Missing file: `{f}`")
+    st.stop()
+else:
+    for f in required_files:
+        st.write(f"✅ Found `{f}`")
 
 # ──────────────────────────────────────────────────────────────
-# Load label data
 try:
-    with open("labels_EN.txt", encoding="utf-8") as f:
-        labels_en_raw = f.read().splitlines()
-    with open("labels_DE.txt", encoding="utf-8") as f:
-        labels_de = f.read().splitlines()
-    with open("answers_DE.txt", encoding="utf-8") as f:
-        answers_de = f.read().splitlines()
+    labels_en_raw, labels_en, labels_de, answers_de = load_labels()
 except Exception as e:
     st.error(f"Error loading label files: {e}")
     st.stop()
 
-labels_en = [f"An image containing {x}" for x in labels_en_raw]
-
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=True)
-def embed_text(texts, chunk=128):
-    parts, out = [texts[i:i+chunk] for i in range(0, len(texts), chunk)], []
-    with torch.no_grad():
-        for i, p in enumerate(parts):
-            t = processor(text=p, return_tensors="pt", padding=True, truncation=True).to(device)
-            e = model.get_text_features(**t)
-            e /= e.norm(dim=-1, keepdim=True)
-            out.append(e)
-    feats = torch.cat(out)
-    feats /= feats.norm(dim=-1, keepdim=True)
-    st.success("✅ Classificator is ready!")
-    return feats
+def get_embeddings():
+    if not path.isfile("text_embeddings.pt"):
+        st.warning("Generating text embeddings...")
+        text_feats = embed_text(labels_en, model, processor)
+        torch.save(text_feats, "text_embeddings.pt")
+    else:
+        st.warning("Found cached embeddings!")
+        text_feats = torch.load("text_embeddings.pt").to(DEVICE)
+    return text_feats
 
-text_feats = embed_text(labels_en)
-
-# ──────────────────────────────────────────────────────────────
-uploaded = st.file_uploader("Upload a foto of your trash!", type=["jpg", "jpeg", "png"])
-
-if uploaded:
-    try:
-        image = Image.open(uploaded).convert("RGB")
-        image = ImageOps.exif_transpose(image)
-        st.image(image, caption="Uploaded image", width=336)
-
-        st.info("🧠 Classifying...")
-        inp = processor(images=image, return_tensors="pt").to(device)
-
-        with torch.no_grad():
-            v = model.get_image_features(**inp)
-            v /= v.norm(dim=-1, keepdim=True)
-            sim = (v @ text_feats.T)[0]
-            idx = sim.argmax().item()
-
-        st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
-
-        st.markdown("🏷️ Top-10:")
-        topk = sim.topk(10)
-        for i in range(10):
-            k = topk.indices[i].item()
-            st.markdown(f"`{labels_en_raw[k]}` ➜ `{labels_de[k]}` ➜ **{answers_de[k]}** — `{topk.values[i].item():.4f}`")
-
-    except Exception as e:
-        st.error(f"❌ Error: {e}")
+text_feats = get_embeddings()
+st.success("✅ Text embeddings ready!")
