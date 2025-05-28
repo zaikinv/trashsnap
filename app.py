@@ -17,10 +17,8 @@ st.markdown("Drop or upload a picture of waste to get the correct Tonne")
 
 show_system_info()
 
-st.cache_resource.clear()
-
 # ──────────────────────────────────────────────────────────────
-@st.cache_resource
+# @st.cache_resource
 def get_model_and_processor():
     return load_model_and_processor()
 
