@@ -60,19 +60,8 @@ text_feats = get_embeddings()
 # st.success("✅ Text embeddings ready!")
 
 # ──────────────────────────────────────────────────────────────
-st.markdown(
-    """
-    <style>
-    section[data-testid="stCameraInput"] video {
-        height: 600px !important;
-        width: auto !important;
-        object-fit: cover;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-photo = st.camera_input(" ")
+
+photo = st.camera_input("Take a photo of your trash")
 
 if photo:
     image = Image.open(photo)
