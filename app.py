@@ -49,13 +49,13 @@ except Exception as e:
 # ──────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=True)
 def get_embeddings():
-    if not path.isfile("text_embeddings.pt"):
+    if not path.isfile("text_embeddings_new.pt"):
         st.warning("Generating text embeddings...")
         text_feats = embed_text(labels_en, model, processor)
-        torch.save(text_feats, "text_embeddings.pt")
+        torch.save(text_feats, "text_embeddings_new.pt")
     else:
         st.warning("Found cached embeddings!")
-        text_feats = torch.load("text_embeddings.pt").to(DEVICE)
+        text_feats = torch.load("text_embeddings_new.pt").to(DEVICE)
     return text_feats
 
 text_feats = get_embeddings()
