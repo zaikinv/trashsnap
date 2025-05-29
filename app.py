@@ -22,10 +22,10 @@ show_system_info()
 def get_model_and_processor():
     return load_model_and_processor()
 
-# st.info("⏳ Loading model...")
+st.info("⏳ Loading model...")
 try:
     model, processor = get_model_and_processor()
-    # st.success("✅ Model and processor loaded!")
+    st.success("✅ Model and processor loaded!")
 except Exception as e:
     st.error(f"Model load failed: {e}")
     st.stop()
@@ -54,12 +54,12 @@ def get_embeddings():
         text_feats = embed_text(labels_en, model, processor)
         torch.save(text_feats, "text_embeddings.pt")
     else:
-        # st.warning("Found cached embeddings!")
+        st.warning("Found cached embeddings!")
         text_feats = torch.load("text_embeddings.pt").to(DEVICE)
     return text_feats
 
 text_feats = get_embeddings()
-# st.success("✅ Text embeddings ready!")
+st.success("✅ Text embeddings ready!")
 
 # ──────────────────────────────────────────────────────────────
 
