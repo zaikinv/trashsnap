@@ -1,6 +1,6 @@
-cmake
 torch
-transformers[sentencepiece]
+sentencepiece==0.1.99
+transformers
 streamlit
 pillow
 psutil
