@@ -2,8 +2,9 @@ import os
 import torch
 from PIL import Image, ImageOps
 from transformers import SiglipProcessor, SiglipModel
+import pickle
 
-MODEL_NAME = "google/siglip-base-patch16-224"
+MODEL_NAME = "google/siglip-so400m-patch14-384"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def load_model_and_processor():
