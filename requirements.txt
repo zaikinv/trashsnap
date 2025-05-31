@@ -4,6 +4,4 @@ streamlit
 pillow
 psutil
 pandas
-cmake
-build-essential
 sentencepiece
