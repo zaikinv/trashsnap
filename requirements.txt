@@ -1,5 +1,5 @@
 torch
-sentencepiece==0.1.99
+sentencepiece
 transformers
 streamlit
 pillow

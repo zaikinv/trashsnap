@@ -75,20 +75,21 @@ if photo:
 
     st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
 
-    # Информация о модели для результата
     st.markdown(f"*🤖 Classified using: {MODEL_NAME}*")
 
     st.markdown("🏷️ Top-10:")
     topk = sim.topk(10)
     
-    # Create DataFrame for top-10 results
+    # Display top-10 results with visual progress bars
     top_indices = [topk.indices[i].item() for i in range(10)]
-    df = pd.DataFrame({
-        "Rank": range(1, 11),
-        "Label (EN)": [labels_en_raw[k] for k in top_indices],
-        "Label (DE)": [labels_de[k] for k in top_indices],
-        "Disposal Method": [answers_de[k] for k in top_indices],
-        "Similarity": [f"{topk.values[i].item():.4f}" for i in range(10)]
-    })
     
-    st.dataframe(df, use_container_width=True)
+    for i in range(10):
+        score = topk.values[i].item()
+        percentage = score * 100  # Convert similarity score (0-1) directly to percentage
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**{i+1}.** {labels_de[top_indices[i]]}")
+            st.progress(score)  # progress expects value between 0.0 and 1.0
+        with col2:
+            st.markdown(f"<div style='font-size: 14px; text-align: center;'><strong>{percentage:.1f}%</strong><br><small>{score:.4f}</small></div>", unsafe_allow_html=True)
