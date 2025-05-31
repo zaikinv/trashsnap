@@ -5,5 +5,5 @@ pillow
 psutil
 pandas
 cmake
-pkg-config
 build-essential
+sentencepiece
