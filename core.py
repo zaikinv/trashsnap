@@ -1,15 +1,15 @@
 import os
 import torch
 from PIL import Image, ImageOps
-from transformers import CLIPProcessor, CLIPModel
+from transformers import SiglipProcessor, SiglipModel
 
-MODEL_NAME = "openai/clip-vit-large-patch14"
+MODEL_NAME = "google/siglip-base-patch16-224"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def load_model_and_processor():
-    model = CLIPModel.from_pretrained(MODEL_NAME, low_cpu_mem_usage=False)
+    model = SiglipModel.from_pretrained(MODEL_NAME, low_cpu_mem_usage=False)
     model = model.to(DEVICE)
-    processor = CLIPProcessor.from_pretrained(MODEL_NAME)
+    processor = SiglipProcessor.from_pretrained(MODEL_NAME)
     return model, processor
 
 def check_required_files(filenames):
@@ -17,11 +17,11 @@ def check_required_files(filenames):
     return missing
 
 def load_labels():
-    with open("labels_EN.txt", encoding="utf-8") as f:
+    with open("data/labels_EN.txt", encoding="utf-8") as f:
         labels_en_raw = f.read().splitlines()
-    with open("labels_DE.txt", encoding="utf-8") as f:
+    with open("data/labels_DE.txt", encoding="utf-8") as f:
         labels_de = f.read().splitlines()
-    with open("answers_DE.txt", encoding="utf-8") as f:
+    with open("data/answers_DE.txt", encoding="utf-8") as f:
         answers_de = f.read().splitlines()
     labels_en = [f"An image containing {x}" for x in labels_en_raw]
     return labels_en_raw, labels_en, labels_de, answers_de

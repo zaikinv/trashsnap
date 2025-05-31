@@ -3,3 +3,5 @@ transformers
 streamlit
 pillow
 psutil
+sentencepiece
+pandas
