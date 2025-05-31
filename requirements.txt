@@ -1,5 +1,5 @@
+cmake
 torch
-transformers
 transformers[sentencepiece]
 streamlit
 pillow
