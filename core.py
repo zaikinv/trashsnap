@@ -9,6 +9,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 def load_model_and_processor():
     model = SiglipModel.from_pretrained(MODEL_NAME, low_cpu_mem_usage=False)
     model = model.to(DEVICE)
+    model.eval()
     processor = SiglipProcessor.from_pretrained(MODEL_NAME)
     return model, processor
 

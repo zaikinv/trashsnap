@@ -10,6 +10,7 @@ from core import (
     load_labels,
     embed_text,
     classify,
+    MODEL_NAME,
 )
 from utils import profile_resources, show_system_info
 st.set_page_config(page_title="TrashSnap", layout="centered")
@@ -26,7 +27,7 @@ def get_model_and_processor():
 st.info("⏳ Loading model...")
 try:
     model, processor = get_model_and_processor()
-    st.success("✅ Model and processor loaded!")
+    st.success(f"✅ Model {MODEL_NAME} and processor loaded!")
 except Exception as e:
     st.error(f"Model load failed: {e}")
     st.stop()
@@ -73,6 +74,9 @@ if photo:
     idx = sim.argmax().item()
 
     st.success(f"🗑️ {labels_en_raw[idx]} ➜ {labels_de[idx]} ➜ **{answers_de[idx]}**")
+
+    # Информация о модели для результата
+    st.markdown(f"*🤖 Classified using: {MODEL_NAME}*")
 
     st.markdown("🏷️ Top-10:")
     topk = sim.topk(10)

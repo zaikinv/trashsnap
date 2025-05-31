@@ -3,5 +3,7 @@ transformers
 streamlit
 pillow
 psutil
-sentencepiece
 pandas
+cmake
+pkg-config
+build-essential
