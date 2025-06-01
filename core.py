@@ -97,7 +97,7 @@ def classify(image, model, processor, text_feats):
     
     # Preprocess image
     image = ImageOps.exif_transpose(image).convert("RGB")
-    image = image.resize((224, 224))
+    # image = image.resize((224, 224))
     
     # Convert to numpy array and normalize to [0, 1]
     image_array = np.array(image).astype(np.float32) / 255.0
