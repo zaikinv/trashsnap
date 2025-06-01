@@ -33,7 +33,6 @@ except Exception as e:
     st.stop()
 
 # ──────────────────────────────────────────────────────────────
-# st.info("📄 Checking label files...")
 required_files = ["data/labels_EN.txt", "data/labels_DE.txt", "data/answers_DE.txt"]
 missing = check_required_files(required_files)
 if missing:

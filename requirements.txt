@@ -5,3 +5,5 @@ streamlit>=1.28.0
 pillow>=9.0.0
 psutil>=5.9.0
 pandas>=2.0.0
+onnxruntime>=1.15.0
+huggingface-hub>=0.16.0

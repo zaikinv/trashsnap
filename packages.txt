@@ -1,5 +1,0 @@
-pkg-config
-cmake
-build-essential
-libprotobuf-dev
-protobuf-compiler 
