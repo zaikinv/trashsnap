@@ -7,8 +7,9 @@ from huggingface_hub import hf_hub_download
 from transformers import CLIPTokenizer
 import pickle
 
-MODEL_NAME = "Xenova/clip-vit-base-patch32"
+MODEL_NAME = "Xenova/clip-vit-large-patch14-336"  # Upgraded to 336x336 resolution
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+IMAGE_SIZE = 336  # Higher resolution: 336x336 instead of 224x224
 
 # ImageNet normalization constants (required for CLIP models)
 # These are the per-channel mean and std calculated from ImageNet dataset
@@ -30,7 +31,7 @@ def load_model_and_processor():
     )
     
     # Load tokenizer
-    tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+    tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14-336")
     
     # Create ONNX runtime sessions
     providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if DEVICE == "cuda" else ['CPUExecutionProvider']
@@ -97,7 +98,7 @@ def classify(image, model, processor, text_feats):
     
     # Preprocess image
     image = ImageOps.exif_transpose(image).convert("RGB")
-    # image = image.resize((224, 224))
+    image = image.resize((IMAGE_SIZE, IMAGE_SIZE))  # REQUIRED: CLIP expects exactly 336x336 images
     
     # Convert to numpy array and normalize to [0, 1]
     image_array = np.array(image).astype(np.float32) / 255.0
@@ -105,7 +106,7 @@ def classify(image, model, processor, text_feats):
     # Apply ImageNet normalization: (pixel - mean) / std
     image_array = (image_array - IMAGENET_MEAN) / IMAGENET_STD
     
-    # Reshape to (1, 3, 224, 224) - NCHW format
+    # Reshape to (1, 3, 336, 336) - NCHW format
     image_array = image_array.transpose(2, 0, 1)[np.newaxis, ...].astype(np.float32)
     
     # Run inference
